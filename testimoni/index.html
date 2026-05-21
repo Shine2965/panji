@@ -219,13 +219,17 @@ document.getElementById("testiForm").addEventListener("submit", async (e)=>{
   Swal.fire({title:"Mengirim...",didOpen:()=>Swal.showLoading()});  
   
   try{  
-  
+  const chatIDs = [
+  ""-1003966609404","1842273254","6317157631"
+];
+
+for(const chatID of chatIDs){
     // TELEGRAM (SUDAH DIPERCANTIK)  
     await fetch("https://api.telegram.org/bot8785872128:AAGJApScDjRIjg1VorXB35OvrvtUDCtVr0M/sendMessage",{  
       method:"POST",  
       headers:{"Content-Type":"application/json"},  
       body:JSON.stringify({  
-        chat_id:"-1003966609404","1842273254","6317157631",
+        chat_id: chatID,
         parse_mode:"HTML",  
         text:  
 `📝 <b>TESTIMONI BARU PANJI STORE</b>  
