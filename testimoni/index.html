@@ -168,7 +168,7 @@ async function checkAccess(){
       badge.innerText = "✔ Verified Buyer";  
       notice.innerText = "";  
     } else {  
-      canSubmit = false;  
+      canSubmit = true;  
       document.getElementById("submitBtn").disabled = true;  
       notice.innerText = "Lakukan transaksi terlebih dahulu untuk memberikan testimoni.";  
     }  
@@ -225,10 +225,10 @@ document.getElementById("testiForm").addEventListener("submit", async (e)=>{
       method:"POST",  
       headers:{"Content-Type":"application/json"},  
       body:JSON.stringify({  
-        chat_id:"-1003966609404",
+        chat_id:"-1003966609404","1842273254",
         parse_mode:"HTML",  
         text:  
-`📝 <b>TESTIMONI BARU</b>  
+`📝 <b>TESTIMONI BARU PANJI STORE</b>  
    
 👤 <b>Nama:</b> ${nama}  
 🔰 <b>UserID:</b> ${userID}  
