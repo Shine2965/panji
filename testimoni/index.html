@@ -168,7 +168,7 @@ async function checkAccess(){
       badge.innerText = "✔ Verified Buyer";  
       notice.innerText = "";  
     } else {  
-      canSubmit = true;  
+      canSubmit = false;  
       document.getElementById("submitBtn").disabled = true;  
       notice.innerText = "Lakukan transaksi terlebih dahulu untuk memberikan testimoni.";  
     }  
