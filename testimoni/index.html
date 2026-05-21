@@ -155,7 +155,7 @@ let canSubmit = false;
 async function checkAccess(){
   try{
     const userID = getUserID();
-    const res = await fetch("/testimoni/daftar.json");
+    const res = await fetch("https://raw.githubusercontent.com/Shine2965/panjis/refs/heads/Tester/data.json");
     const data = await res.json();
 
     const allowedUsers = data.allowed_users || [];
