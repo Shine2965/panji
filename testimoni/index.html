@@ -1,295 +1,297 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panji Store Testimoni</title>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-body{
-  min-height:100vh;
-  color:white;
-  background: linear-gradient(-45deg,#0f172a,#1e1b4b,#111827,#312e81);
-  background-size:400% 400%;
-  animation: gradientMove 12s ease infinite;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  padding:20px;
-}
-@keyframes gradientMove{
-  0%{background-position:0% 50%;}
-  50%{background-position:100% 50%;}
-  100%{background-position:0% 50%;}
-}
-.container{
-  width:400px;
-  padding:35px;
-  border-radius:30px;
-  backdrop-filter: blur(35px);
-  background: rgba(255,255,255,0.05);
-  border:1px solid rgba(255,255,255,0.15);
-  box-shadow:0 0 60px rgba(255,215,0,0.6);
-  margin-top:40px;
-}
-h2{
-  text-align:center;
-  margin-bottom:25px;
-  background:linear-gradient(90deg,#facc15,#fbbf24,#fde68a);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-}
-label{font-size:14px;font-weight:500;}
-input,textarea{
-  width:100%;
-  margin-top:8px;
-  margin-bottom:18px;
-  padding:12px;
-  border-radius:15px;
-  border:1px solid rgba(255,255,255,0.2);
-  background:rgba(255,255,255,0.07);
-  color:white;
-}
-  nav a{
-      margin-left:20px;
-      text-decoration:none;
-      color:#fff;
-      font-size:14px;
-    }
-
-    nav a:hover{
-      color:#38bdf8;
-    }
-textarea{resize:none;height:90px;}
-button{
-  width:100%;
-  padding:15px;
-  border:none;
-  border-radius:20px;
-  font-weight:600;
-  cursor:pointer;
-  background:linear-gradient(90deg,#fbbf24,#f59e0b);
-  color:black;
-  box-shadow:0 0 30px rgba(255,215,0,0.6);
-}
-.rating{display:flex;justify-content:center;gap:10px;margin-bottom:15px;}
-.star{font-size:30px;cursor:pointer;color:#555;}
-.star.selected{color:gold;text-shadow:0 0 15px gold;}
-.rating-avg{
-  text-align:center;
-  padding:12px;
-  border-radius:20px;
-  margin-top:20px;
-  background:rgba(255,215,0,0.15);
-}
-.badge{
-  display:inline-block;
-  margin:10px auto 20px auto;
-  padding:6px 12px;
-  border-radius:999px;
-  font-size:12px;
-}
-.badge.verified{background:rgba(34,197,94,.15);color:#22c55e;}
-.badge.guest{background:rgba(255,255,255,.1);color:#cbd5f5;}
-.notice{text-align:center;font-size:13px;margin-top:10px;color:#fbbf24;}
-</style>
-</head>
-
-<body>
-  <header>
-  <h1>Menu Utama</h1>
-  <nav>
-     <a href="/home2/">Home</a>
-  </nav>
-  </header>
-
-<div class="container">
-<h2>✨ Panji Store Testimoni ✨</h2>
-
-<div id="userBadge" class="badge guest">👁️ Guest Viewer</div>
-<div id="guestNotice" class="notice"></div>
-
-<form id="testiForm">
-<label>Nama</label>
-<input type="text" id="nama" required>
-
-<label>Testimoni</label>
-<textarea id="pesan" required></textarea>
-
-<label>Rating</label>
-<div class="rating">
-<span class="star" data-value="1">★</span>
-<span class="star" data-value="2">★</span>
-<span class="star" data-value="3">★</span>
-<span class="star" data-value="4">★</span>
-<span class="star" data-value="5">★</span>
-</div>
-
-<button type="submit" id="submitBtn">Kirim Testimoni</button>
-</form>
-
-<div class="rating-avg" id="ratingAvg"></div>
-</div>
-
-<script>
-// USER ID
-function generateUserID(){
-  return 'user-' + Math.random().toString(36).substring(2,10) + '-' + Date.now().toString(36);
-}
-function getUserID(){
-  let id = localStorage.getItem("user_id");
-  if(!id){
-    id = generateUserID();
-    localStorage.setItem("user_id", id);
-  }
-  return id;
-}
-
-// ACCESS
-let canSubmit = false;
-
-async function checkAccess(){
-  try{
-    const userID = getUserID();
-    const res = await fetch("/testimoni/daftar.json");
-    const data = await res.json();
-
-    const allowedUsers = data.allowed_users || [];
-    const badge = document.getElementById("userBadge");
-    const notice = document.getElementById("guestNotice");
-
-    if(allowedUsers.includes(userID)){
-      canSubmit = true;
-      badge.className = "badge verified";
-      badge.innerText = "✔ Verified Buyer";
-      notice.innerText = "";
-    } else {
-      canSubmit = false;
-      document.getElementById("submitBtn").disabled = true;
-      notice.innerText = "Lakukan transaksi terlebih dahulu untuk memberikan testimoni.";
-    }
-
-  }catch{
-    Swal.fire("Gagal validasi akses");
-  }
-}
-checkAccess();
-
-// RATING
-let totalRating=5;
-let totalReview=1;
-
-function updateAverage(){
-  let avg = (totalRating / totalReview).toFixed(1);
-  document.getElementById("ratingAvg").innerHTML = `⭐ Rating: ${avg}/5 (${totalReview} ulasan)`;
-}
-updateAverage();
-
-let selectedRating=0;
-
-document.querySelectorAll(".star").forEach(star=>{
-  star.addEventListener("click",()=>{
-    if(!canSubmit) return;
-
-    selectedRating=parseInt(star.dataset.value);
-    document.querySelectorAll(".star").forEach(s=>s.classList.remove("selected"));
-
-    for(let i=0;i<selectedRating;i++){
-      document.querySelectorAll(".star")[i].classList.add("selected");
-    }
-  });
-});
-
-// SUBMIT
-// SUBMIT
-document.getElementById("testiForm").addEventListener("submit", async (e)=>{
-  e.preventDefault();
-
-  if(!canSubmit) return Swal.fire("Tidak diizinkan");
-  if(!selectedRating) return Swal.fire("Pilih rating dahulu!");
-
-  const nama = document.getElementById("nama").value;
-  const pesan = document.getElementById("pesan").value;
-  const userID = getUserID();
-
-  Swal.fire({title:"Mengirim...",didOpen:()=>Swal.showLoading()});
-
-  try{
-
-    // TELEGRAM (SUDAH DIPERCANTIK)
-    await fetch("https://api.telegram.org/bot8785872128:AAGJApScDjRIjg1VorXB35OvrvtUDCtVr0M/sendMessage",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        chat_id:"-1003966609404","1842273254",
-        parse_mode:"HTML",
-        text:
-`📝 <b>TESTIMONI BARU</b>
- 
-👤 <b>Nama:</b> ${nama}
-🔰 <b>UserID:</b> ${userID}
-⭐ <b>Rating:</b> ${selectedRating}/5
-💬 <b>Pesan:</b>
-${pesan}
-
-🌐 <a href="https://shinedomain.my.id">©Shine Shop</a>`,
-
-        reply_markup:{
-          inline_keyboard:[
-            [
-              {
-                text:"🌟 Kasih testimoni",
-                url:"https://panjistore.shinedomain.my.id"
-              }
-            ]
-          ]
-        }
-
-      })
-    });
-
-    Swal.fire("Berhasil","Testimoni terkirim","success");
-
-    e.target.reset();
-    selectedRating = 0;
-    document.querySelectorAll(".star")
-      .forEach(s=>s.classList.remove("selected"));
-
-  }catch{
-    Swal.fire("Gagal mengirim");
-  }
-});
-  /* 🔒 ANTI DEVTOOLS (tidak ganggu mobile) */
-
-document.addEventListener("keydown", function(e){
-  // F12
-  if(e.key === "F12") e.preventDefault();
-
-  // Ctrl + Shift + I/C/J
-  if(e.ctrlKey && e.shiftKey &&
-    ["I","C","J"].includes(e.key)) e.preventDefault();
-
-  // Ctrl + U
-  if(e.ctrlKey && e.key === "u") e.preventDefault();
-});
-
-// Deteksi DevTools (lebih aman, tidak pakai resize hack)
-setInterval(() => {
-  const threshold = 160;
-  if (window.devtoolsOpen) return;
-
-  const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-
-  if (widthThreshold && !/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-    document.body.innerHTML =
-      "<h1 style='color:gold;text-align:center;margin-top:40vh;'>🚫 Developer Tools Terdeteksi</h1>";
-  }
-}, 2000);
-</script>
-
-</body>
-</html>
+<!DOCTYPE html>  
+<html lang="id">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<title>SHINE SHOP Testimoni</title>  
+  
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>  
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">  
+  
+<style>  
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}  
+body{  
+  min-height:100vh;  
+  color:white;  
+  background: linear-gradient(-45deg,#0f172a,#1e1b4b,#111827,#312e81);  
+  background-size:400% 400%;  
+  animation: gradientMove 12s ease infinite;  
+  display:flex;  
+  flex-direction:column;  
+  align-items:center;  
+  padding:20px;  
+}  
+@keyframes gradientMove{  
+  0%{background-position:0% 50%;}  
+  50%{background-position:100% 50%;}  
+  100%{background-position:0% 50%;}  
+}  
+.container{  
+  width:400px;  
+  padding:35px;  
+  border-radius:30px;  
+  backdrop-filter: blur(35px);  
+  background: rgba(255,255,255,0.05);  
+  border:1px solid rgba(255,255,255,0.15);  
+  box-shadow:0 0 60px rgba(255,215,0,0.6);  
+  margin-top:40px;  
+}  
+h2{  
+  text-align:center;  
+  margin-bottom:25px;  
+  background:linear-gradient(90deg,#facc15,#fbbf24,#fde68a);  
+  -webkit-background-clip:text;  
+  -webkit-text-fill-color:transparent;  
+}  
+label{font-size:14px;font-weight:500;}  
+input,textarea{  
+  width:100%;  
+  margin-top:8px;  
+  margin-bottom:18px;  
+  padding:12px;  
+  border-radius:15px;  
+  border:1px solid rgba(255,255,255,0.2);  
+  background:rgba(255,255,255,0.07);  
+  color:white;  
+}  
+  nav a{  
+      margin-left:20px;  
+      text-decoration:none;  
+      color:#fff;  
+      font-size:14px;  
+    }  
+  
+    nav a:hover{  
+      color:#38bdf8;  
+    }  
+textarea{resize:none;height:90px;}  
+button{  
+  width:100%;  
+  padding:15px;  
+  border:none;  
+  border-radius:20px;  
+  font-weight:600;  
+  cursor:pointer;  
+  background:linear-gradient(90deg,#fbbf24,#f59e0b);  
+  color:black;  
+  box-shadow:0 0 30px rgba(255,215,0,0.6);  
+}  
+.rating{display:flex;justify-content:center;gap:10px;margin-bottom:15px;}  
+.star{font-size:30px;cursor:pointer;color:#555;}  
+.star.selected{color:gold;text-shadow:0 0 15px gold;}  
+.rating-avg{  
+  text-align:center;  
+  padding:12px;  
+  border-radius:20px;  
+  margin-top:20px;  
+  background:rgba(255,215,0,0.15);  
+}  
+.badge{  
+  display:inline-block;  
+  margin:10px auto 20px auto;  
+  padding:6px 12px;  
+  border-radius:999px;  
+  font-size:12px;  
+}  
+.badge.verified{background:rgba(34,197,94,.15);color:#22c55e;}  
+.badge.guest{background:rgba(255,255,255,.1);color:#cbd5f5;}  
+.notice{text-align:center;font-size:13px;margin-top:10px;color:#fbbf24;}  
+</style>  
+</head>  
+  
+<body>  
+  <header>  
+  <h1>Menu Utama</h1>  
+  <nav>  
+     <a href="/home2/">Home</a>  
+  </nav>  
+  </header>  
+  
+<div class="container">  
+<h2>✨ Panji Store Testimoni ✨</h2>  
+  
+<div id="userBadge" class="badge guest">👁️ Guest Viewer</div>  
+<div id="guestNotice" class="notice"></div>  
+  
+<form id="testiForm">  
+<label>Nama</label>  
+<input type="text" id="nama" required>  
+  
+<label>Testimoni</label>  
+<textarea id="pesan" required></textarea>  
+  
+<label>Rating</label>  
+<div class="rating">  
+<span class="star" data-value="1">★</span>  
+<span class="star" data-value="2">★</span>  
+<span class="star" data-value="3">★</span>  
+<span class="star" data-value="4">★</span>  
+<span class="star" data-value="5">★</span>  
+</div>  
+  
+<button type="submit" id="submitBtn">Kirim Testimoni</button>  
+</form>  
+  
+<div class="rating-avg" id="ratingAvg"></div>  
+</div>  
+  
+<script>  
+// USER ID  
+function generateUserID(){  
+  return 'user-' + Math.random().toString(36).substring(2,10) + '-' + Date.now().toString(36);  
+}  
+function getUserID(){  
+  let id = localStorage.getItem("user_id");  
+  if(!id){  
+    id = generateUserID();  
+    localStorage.setItem("user_id", id);  
+  }  
+  return id;  
+}  
+  
+// ACCESS  
+let canSubmit = false;  
+  
+async function checkAccess(){  
+  try{  
+    const userID = getUserID();  
+    const res = await fetch("/testimoni/daftar.json");  
+    const data = await res.json();  
+  
+    const allowedUsers = data.allowed_users || [];  
+    const badge = document.getElementById("userBadge");  
+    const notice = document.getElementById("guestNotice");  
+  
+    if(allowedUsers.includes(userID)){  
+      canSubmit = true;  
+      badge.className = "badge verified";  
+      badge.innerText = "✔ Verified Buyer";  
+      notice.innerText = "";  
+    } else {  
+      canSubmit = false;  
+      document.getElementById("submitBtn").disabled = true;  
+      notice.innerText = "Lakukan transaksi terlebih dahulu untuk memberikan testimoni.";  
+    }  
+  
+  }catch{  
+    Swal.fire("Gagal validasi akses");  
+  }  
+}  
+checkAccess();  
+  
+// RATING  
+let totalRating=5;  
+let totalReview=1;  
+  
+function updateAverage(){  
+  let avg = (totalRating / totalReview).toFixed(1);  
+  document.getElementById("ratingAvg").innerHTML = `⭐ Rating: ${avg}/5 (${totalReview} ulasan)`;  
+}  
+updateAverage();  
+  
+let selectedRating=0;  
+  
+document.querySelectorAll(".star").forEach(star=>{  
+  star.addEventListener("click",()=>{  
+    if(!canSubmit) return;  
+  
+    selectedRating=parseInt(star.dataset.value);  
+    document.querySelectorAll(".star").forEach(s=>s.classList.remove("selected"));  
+  
+    for(let i=0;i<selectedRating;i++){  
+      document.querySelectorAll(".star")[i].classList.add("selected");  
+    }  
+  });  
+});  
+  
+// SUBMIT  
+// SUBMIT  
+document.getElementById("testiForm").addEventListener("submit", async (e)=>{  
+  e.preventDefault();  
+  
+  if(!canSubmit) return Swal.fire("Tidak diizinkan");  
+  if(!selectedRating) return Swal.fire("Pilih rating dahulu!");  
+  
+  const nama = document.getElementById("nama").value;  
+  const pesan = document.getElementById("pesan").value;  
+  const userID = getUserID();  
+  
+  Swal.fire({title:"Mengirim...",didOpen:()=>Swal.showLoading()});  
+  
+  try{  
+  
+    // TELEGRAM (SUDAH DIPERCANTIK)  
+    await fetch("https://api.telegram.org/bot8785872128:AAGJApScDjRIjg1VorXB35OvrvtUDCtVr0M/sendMessage",{  
+      method:"POST",  
+      headers:{"Content-Type":"application/json"},  
+      body:JSON.stringify({  
+        chat_id:"-1003966609404",  
+        parse_mode:"HTML",  
+        text:  
+`📝 <b>TESTIMONI BARU</b>  
+   
+👤 <b>Nama:</b> ${nama}  
+🔰 <b>UserID:</b> ${userID}  
+⭐ <b>Rating:</b> ${selectedRating}/5  
+💬 <b>Pesan:</b>  
+${pesan}  
+  
+🌐 <a href="https://shinedomain.my.id">©Shine Shop</a>`,  
+  
+        reply_markup:{  
+          inline_keyboard:[  
+            [  
+              {  
+                text:"🌟 Kasih testimoni",  
+                url:"https://panjistore.shinedomain.my.id"  
+              }  
+            ]  
+          ]  
+        }  
+  
+      })  
+    });  
+  
+    Swal.fire("Berhasil","Testimoni terkirim","success");  
+  
+    e.target.reset();  
+    selectedRating = 0;  
+    document.querySelectorAll(".star")  
+      .forEach(s=>s.classList.remove("selected"));  
+  
+  }catch{  
+    Swal.fire("Gagal mengirim");  
+  }  
+});  
+  /* 🔒 ANTI DEVTOOLS (tidak ganggu mobile) */  
+  
+document.addEventListener("keydown", function(e){  
+  // F12  
+  if(e.key === "F12") e.preventDefault();  
+  
+  // Ctrl + Shift + I/C/J  
+  if(e.ctrlKey && e.shiftKey &&  
+    ["I","C","J"].includes(e.key)) e.preventDefault();  
+  
+  // Ctrl + U  
+  if(e.ctrlKey && e.key === "u") e.preventDefault();  
+});  
+  
+// Deteksi DevTools (lebih aman, tidak pakai resize hack)  
+setInterval(() => {  
+  const threshold = 160;  
+  if (window.devtoolsOpen) return;  
+  
+  const widthThreshold = window.outerWidth - window.innerWidth > threshold;  
+  
+  if (widthThreshold && !/Android|iPhone|iPad/i.test(navigator.userAgent)) {  
+    document.body.innerHTML =  
+      "<h1 style='color:gold;text-align:center;margin-top:40vh;'>🚫 Developer Tools Terdeteksi</h1>";  
+  }  
+}, 2000);  
+</script>  
+  
+</body>  
+</html>  
+  
+  
